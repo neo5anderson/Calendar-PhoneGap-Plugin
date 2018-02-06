@@ -329,13 +329,8 @@ public class Calendar extends CordovaPlugin {
       cordova.getThreadPool().execute(new Runnable() {
         @Override
         public void run() {
-          try {
-            getCalendarAccessor().deleteCalendar(calendarName);
-            callback.sendPluginResult(new PluginResult(PluginResult.Status.OK, "yes"));
-          } catch (Exception e) {
-            System.err.println("Exception: " + e.getMessage());
-            callback.error(e.getMessage());
-          }
+          getCalendarAccessor().deleteCalendar(calendarName);
+          callback.sendPluginResult(new PluginResult(PluginResult.Status.OK, "yes"));
         }
       });
     } catch (JSONException e) {
@@ -357,16 +352,22 @@ public class Calendar extends CordovaPlugin {
                   .setType("vnd.android.cursor.item/event")
                   .putExtra("title", getPossibleNullString("title", jsonFilter))
                   .putExtra("hasAlarm", 1);
+
+          calIntent
+              .putExtra("beginTime", jsonFilter.optLong("startTime"))
+              .putExtra("endTime", jsonFilter.optLong("endTime"))
+              .putExtra("eventTimezone", TimeZone.getDefault().getID());
+
           if(isAllDayEvent){
-            calIntent
-                    .putExtra("allDay", isAllDayEvent)
-                    .putExtra("beginTime", jsonFilter.optLong("startTime") + TimeZone.getDefault().getOffset(jsonFilter.optLong("startTime")))
-                    .putExtra("endTime", jsonFilter.optLong("endTime") + TimeZone.getDefault().getOffset(jsonFilter.optLong("endTime")))
-                    .putExtra("eventTimezone", "TIMEZONE_UTC");
-          } else {
-            calIntent
-                    .putExtra("beginTime", jsonFilter.optLong("startTime"))
-                    .putExtra("endTime", jsonFilter.optLong("endTime"));
+            calIntent.putExtra("allDay", isAllDayEvent);
+//                    .putExtra("allDay", isAllDayEvent)
+//                    .putExtra("beginTime", jsonFilter.optLong("startTime") + TimeZone.getDefault().getOffset(jsonFilter.optLong("startTime")))
+//                    .putExtra("endTime", jsonFilter.optLong("endTime") + TimeZone.getDefault().getOffset(jsonFilter.optLong("endTime")))
+//                    .putExtra("eventTimezone", "UTC");
+//          } else {
+//            calIntent
+//                    .putExtra("beginTime", jsonFilter.optLong("startTime"))
+//                    .putExtra("endTime", jsonFilter.optLong("endTime"));
           }
 
           // TODO can we pass a reminder here?
